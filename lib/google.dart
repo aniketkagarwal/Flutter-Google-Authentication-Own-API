@@ -1,17 +1,27 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+_launchURL(String url) async {
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    throw 'Could not launch $url';
+  }
+}
+
 Future<Token> getToken(String appId, String appSecret) async {
   Stream<String> onCode = await _server();
-  String url = "https://accounts.google.com/signin/oauth/oauthchooseaccount?client_id=$appId&redirect_uri=http://localhost:8585&response_type=code";
+  String url = "https://accounts.google.com/signin/oauth/oauthchooseaccount?client_id=$appId&as=8touwVoG7T7g2bDbrzM7Qg&destination=https%3A%2F%2Fgoogle-gmail.auth0.com&approval_state=!ChRBMmtmbHMwb2dpTDlBbUdSbkNLbhIfQTBuSkNEd0NhRDRVOEhuU1JuY2dubXFld2Mxc19oWQ%E2%88%99AJDr988AAAAAXjAdfwPxEo5WTXMm5Z7PwLT8i9RrLc6E&oauthgdpr=1&xsrfsig=ChkAeAh8T0lQSkNgEtq8NaqHxO76J248QCUCEg5hcHByb3ZhbF9zdGF0ZRILZGVzdGluYXRpb24SBXNvYWN1Eg9vYXV0aHJpc2t5c2NvcGU&flowName=GeneralOAuthFlow";
   final flutterWebViewPlugin = new FlutterWebviewPlugin();
-  flutterWebViewPlugin.launch(url);
+  //flutterWebViewPlugin.launch(url);
+  _launchURL(url);
   final String code = await onCode.first;
-  final http.Response response = await http.post("https://oauth2.googleapis.com/token", body: {"client_id": appId, "redirect_uri": "http://localhost:8585", "client_secret": appSecret, "code": code, "grant_type": "authorization_code"});
+  final http.Response response = await http.post("https://oauth2.googleapis.com/token", body: {"client_id": appId, "redirect_uri": "", "client_secret": appSecret, "code": code, "grant_type": "authorization_code"});
   flutterWebViewPlugin.close();
   return new Token.fromMap(jsonDecode(response.body));
 }
